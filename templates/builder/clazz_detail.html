@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}{{ clazz.name }} – ModelDev{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+    <div>
+      <h1 class="h3 mb-0 fw-bold">
+        <span class="font-monospace text-primary">{{ clazz.name }}</span>
+        {% if clazz.abstract %}<span class="badge bg-warning text-dark ms-2 fs-6">abstract</span>{% endif %}
+      </h1>
+      {% if clazz.verbose_name %}<p class="text-muted mb-0">{{ clazz.verbose_name }}</p>{% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'clazz_preview' clazz.pk %}" class="btn btn-outline-success btn-sm">
+      <i class="bi bi-code-slash"></i> Preview Code
+    </a>
+    <a href="{% url 'clazz_edit' clazz.pk %}" class="btn btn-outline-warning btn-sm">
+      <i class="bi bi-pencil"></i> Edit Clazz
+    </a>
+    <a href="{% url 'field_create' clazz.pk %}" class="btn btn-outline-info btn-sm">
+      <i class="bi bi-plus"></i> Add Field
+    </a>
+    <a href="{% url 'section_create' clazz.pk %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus"></i> Add Section
+    </a>
+    <a href="{% url 'clazz_delete' clazz.pk %}" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-trash"></i>
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left: Meta info + Fields -->
+  <div class="col-xl-4">
+
+    <!-- Meta card -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold d-flex justify-content-between">
+        <span><i class="bi bi-info-circle text-primary"></i> Meta</span>
+        <a href="{% url 'clazz_edit' clazz.pk %}" class="btn btn-sm btn-outline-secondary py-0">
+          <i class="bi bi-pencil"></i>
+        </a>
+      </div>
+      <div class="card-body small">
+        {% if clazz.verbose_name %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">verbose_name</span><code>{{ clazz.verbose_name }}</code></div>
+        {% endif %}
+        {% if clazz.verbose_name_plural %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">verbose_name_plural</span><code>{{ clazz.verbose_name_plural }}</code></div>
+        {% endif %}
+        {% if clazz.ordering %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">ordering</span><code>{{ clazz.ordering }}</code></div>
+        {% endif %}
+        {% if clazz.db_table %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">db_table</span><code>{{ clazz.db_table }}</code></div>
+        {% endif %}
+        {% if clazz.app_label %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">app_label</span><code>{{ clazz.app_label }}</code></div>
+        {% endif %}
+        {% if clazz.list_display %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">list_display</span><code>{{ clazz.list_display }}</code></div>
+        {% endif %}
+        {% if clazz.search_fields %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">search_fields</span><code>{{ clazz.search_fields }}</code></div>
+        {% endif %}
+        {% if clazz.list_filter %}
+          <div class="d-flex mb-1"><span class="text-muted me-2" style="width:130px">list_filter</span><code>{{ clazz.list_filter }}</code></div>
+        {% endif %}
+        {% if clazz.description %}
+          <hr class="border-secondary">
+          <p class="mb-0 text-muted">{{ clazz.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Fields card -->
+    <div class="card">
+      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ul text-info"></i> Fields
+          <span class="badge bg-secondary ms-1">{{ clazz.fields.count }}</span>
+        </span>
+        <a href="{% url 'field_create' clazz.pk %}" class="btn btn-sm btn-outline-info py-0">
+          <i class="bi bi-plus"></i>
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if clazz.fields.all %}
+        <table class="table table-sm table-dark table-hover mb-0">
+          <thead class="text-muted">
+            <tr>
+              <th class="ps-3">Name</th>
+              <th>Type</th>
+              <th>Opts</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for field in clazz.fields.all %}
+            <tr>
+              <td class="ps-3 font-monospace">{{ field.name }}</td>
+              <td><span class="badge bg-primary">{{ field.field_type }}</span></td>
+              <td class="small text-muted">
+                {% if field.null %}N{% endif %}{% if field.blank %}B{% endif %}{% if field.unique %}U{% endif %}
+              </td>
+              <td class="text-end pe-2">
+                <a href="{% url 'field_edit' field.pk %}" class="btn btn-sm btn-outline-warning py-0 px-1">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'field_delete' field.pk %}" class="btn btn-sm btn-outline-danger py-0 px-1">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+          <div class="text-center py-3 text-muted small">
+            No fields yet. <a href="{% url 'field_create' clazz.pk %}">Add one</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Unassigned fields note -->
+    {% if unassigned_fields %}
+    <div class="alert alert-warning mt-3 py-2 small">
+      <i class="bi bi-exclamation-triangle"></i>
+      <strong>{{ unassigned_fields.count }}</strong> field{{ unassigned_fields.count|pluralize }} not yet assigned to any section:
+      {% for f in unassigned_fields %}<code>{{ f.name }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: Sections -->
+  <div class="col-xl-8">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="fw-bold mb-0"><i class="bi bi-layout-split text-primary"></i> Sections</h5>
+      <a href="{% url 'section_create' clazz.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Section
+      </a>
+    </div>
+
+    {% if sections %}
+      {% for section in sections %}
+      <div class="card mb-3 section-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div>
+            <i class="bi bi-folder2 text-warning"></i>
+            <span class="fw-semibold ms-1">{{ section.name }}</span>
+            {% if section.collapsed %}<span class="badge bg-secondary ms-2">collapsed</span>{% endif %}
+            <span class="badge bg-secondary ms-2">order {{ section.order }}</span>
+          </div>
+          <div class="d-flex gap-1">
+            <a href="{% url 'section_detail' section.pk %}" class="btn btn-sm btn-outline-light py-0">
+              <i class="bi bi-gear"></i> Manage
+            </a>
+            <a href="{% url 'section_edit' section.pk %}" class="btn btn-sm btn-outline-warning py-0">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'section_delete' section.pk %}" class="btn btn-sm btn-outline-danger py-0">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
+        </div>
+        <div class="card-body py-2">
+          {% if section.description %}
+            <p class="text-muted small mb-2">{{ section.description }}</p>
+          {% endif %}
+          <!-- Fields in section -->
+          {% if section.section_fields.all %}
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              {% for sf in section.section_fields.all %}
+                <span class="badge bg-dark border border-secondary font-monospace">
+                  <span class="text-muted me-1">#{{ sf.order }}</span>
+                  {{ sf.field.name }}
+                  <span class="ms-1 text-primary">{{ sf.field.field_type }}</span>
+                </span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-2">No fields in this section yet.</p>
+          {% endif %}
+          <!-- Related tables -->
+          {% if section.related_tables.all %}
+            <div class="mt-2">
+              {% for rt in section.related_tables.all %}
+                <span class="badge bg-info text-dark me-1">
+                  <i class="bi bi-table"></i> {{ rt.related_clazz.name }} inline
+                  <span class="opacity-75">({{ rt.inline_style }})</span>
+                </span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-center py-4 text-muted border border-secondary rounded">
+        <i class="bi bi-layout-split display-5"></i>
+        <p class="mt-2">No sections yet. Sections group your fields into logical areas.</p>
+        <a href="{% url 'section_create' clazz.pk %}" class="btn btn-primary">
+          <i class="bi bi-plus-lg"></i> Add Section
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

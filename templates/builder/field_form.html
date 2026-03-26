@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <a href="{% url 'clazz_detail' clazz.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold">{{ title }}</h1>
+    <p class="text-muted mb-0">Clazz: <span class="font-monospace text-primary">{{ clazz.name }}</span></p>
+  </div>
+</div>
+
+<form method="post" class="row g-4" id="field-form">
+  {% csrf_token %}
+
+  <!-- Column 1: Core -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold"><i class="bi bi-type text-primary"></i> Core</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label">Field Name <span class="text-danger">*</span></label>
+          <input type="text" name="name" value="{{ form.name.value|default:'' }}"
+                 class="form-control font-monospace {% if form.name.errors %}is-invalid{% endif %}"
+                 placeholder="e.g. first_name" required />
+          {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Verbose Name</label>
+          <input type="text" name="verbose_name" value="{{ form.verbose_name.value|default:'' }}"
+                 class="form-control" placeholder="e.g. First Name" />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Field Type <span class="text-danger">*</span></label>
+          <select name="field_type" id="id_field_type" class="form-select font-monospace" required>
+            {% for val, label in form.fields.field_type.choices %}
+              <option value="{{ val }}" {% if form.field_type.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Order</label>
+          <input type="number" name="order" value="{{ form.order.value|default:0 }}"
+                 class="form-control" min="0" />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Help Text</label>
+          <input type="text" name="help_text" value="{{ form.help_text.value|default:'' }}"
+                 class="form-control" placeholder="Short description shown in forms" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Column 2: Options -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold"><i class="bi bi-sliders text-info"></i> Options</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label">Max Length</label>
+          <input type="number" name="max_length" value="{{ form.max_length.value|default:'' }}"
+                 class="form-control" placeholder="e.g. 255" min="1" />
+          <div class="form-text">Required for CharField, SlugField, etc.</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Default Value</label>
+          <input type="text" name="default" value="{{ form.default.value|default:'' }}"
+                 class="form-control font-monospace" placeholder='e.g. "" or True or 0' />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Choices</label>
+          <textarea name="choices" rows="4" class="form-control font-monospace"
+                    placeholder="active,Active&#10;draft,Draft&#10;archived,Archived">{{ form.choices.value|default:'' }}</textarea>
+          <div class="form-text">One choice per line: <code>VALUE,Label</code></div>
+        </div>
+
+        <!-- Boolean checkboxes -->
+        <div class="col-12">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" name="null" id="id_null"
+                   {% if form.null.value %}checked{% endif %} />
+            <label class="form-check-label" for="id_null">null=True</label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" name="blank" id="id_blank"
+                   {% if form.blank.value %}checked{% endif %} />
+            <label class="form-check-label" for="id_blank">blank=True</label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" name="unique" id="id_unique"
+                   {% if form.unique.value %}checked{% endif %} />
+            <label class="form-check-label" for="id_unique">unique=True</label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" name="db_index" id="id_db_index"
+                   {% if form.db_index.value %}checked{% endif %} />
+            <label class="form-check-label" for="id_db_index">db_index=True</label>
+          </div>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" name="primary_key" id="id_primary_key"
+                   {% if form.primary_key.value %}checked{% endif %} />
+            <label class="form-check-label" for="id_primary_key">primary_key=True</label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="editable" id="id_editable"
+                   {% if form.editable.value != False %}checked{% endif %} />
+            <label class="form-check-label" for="id_editable">editable=True</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Column 3: Type-specific -->
+  <div class="col-lg-4">
+    <!-- Decimal -->
+    <div class="card mb-3 type-panel" data-types="DecimalField">
+      <div class="card-header fw-semibold"><i class="bi bi-123 text-warning"></i> Decimal Options</div>
+      <div class="card-body row g-3">
+        <div class="col-6">
+          <label class="form-label">Max Digits</label>
+          <input type="number" name="max_digits" value="{{ form.max_digits.value|default:'' }}"
+                 class="form-control" placeholder="10" />
+        </div>
+        <div class="col-6">
+          <label class="form-label">Decimal Places</label>
+          <input type="number" name="decimal_places" value="{{ form.decimal_places.value|default:'' }}"
+                 class="form-control" placeholder="2" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Date/DateTime -->
+    <div class="card mb-3 type-panel" data-types="DateField DateTimeField">
+      <div class="card-header fw-semibold"><i class="bi bi-calendar text-success"></i> Date Options</div>
+      <div class="card-body">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" name="auto_now" id="id_auto_now"
+                 {% if form.auto_now.value %}checked{% endif %} />
+          <label class="form-check-label" for="id_auto_now">auto_now=True <small class="text-muted">(updated on save)</small></label>
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" name="auto_now_add" id="id_auto_now_add"
+                 {% if form.auto_now_add.value %}checked{% endif %} />
+          <label class="form-check-label" for="id_auto_now_add">auto_now_add=True <small class="text-muted">(set on create)</small></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Relations -->
+    <div class="card mb-3 type-panel" data-types="ForeignKey OneToOneField ManyToManyField">
+      <div class="card-header fw-semibold"><i class="bi bi-diagram-3 text-danger"></i> Relation Options</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label">Target Clazz</label>
+          <select name="related_clazz" class="form-select">
+            <option value="">— Select —</option>
+            {% for opt in form.related_clazz.field.queryset %}
+              <option value="{{ opt.pk }}" {% if form.related_clazz.value == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">related_name</label>
+          <input type="text" name="related_name" value="{{ form.related_name.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="e.g. images" />
+        </div>
+        <div class="col-12 fk-only" data-types="ForeignKey OneToOneField">
+          <label class="form-label">on_delete</label>
+          <select name="on_delete" class="form-select">
+            {% for val, label in form.fields.on_delete.choices %}
+              <option value="{{ val }}" {% if form.on_delete.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-end">
+      <a href="{% url 'clazz_detail' clazz.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-save"></i> Save Field
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function updatePanels() {
+    const type = document.getElementById('id_field_type').value;
+    document.querySelectorAll('.type-panel').forEach(panel => {
+      const types = panel.dataset.types.split(' ');
+      panel.style.display = types.includes(type) ? '' : 'none';
+    });
+  }
+  document.getElementById('id_field_type').addEventListener('change', updatePanels);
+  updatePanels();
+</script>
+{% endblock %}

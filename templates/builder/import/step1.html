@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Import – Step 1 – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold"><i class="bi bi-upload text-success"></i> Import Models</h1>
+    <p class="text-muted mb-0">Upload Django source files to import models into ModelDev</p>
+  </div>
+</div>
+
+<!-- Wizard steps indicator -->
+{% include "builder/import/_steps.html" with current=1 %}
+
+<div class="row g-4 mt-1">
+
+  <!-- Upload card -->
+  <div class="col-lg-7">
+    <form method="post" enctype="multipart/form-data" id="upload-form">
+      {% csrf_token %}
+
+      <!-- Tab: individual files / zip -->
+      <div class="card">
+        <div class="card-header">
+          <ul class="nav nav-tabs card-header-tabs" id="uploadTabs">
+            <li class="nav-item">
+              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-files" type="button">
+                <i class="bi bi-files"></i> Individual Files
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-zip" type="button">
+                <i class="bi bi-file-zip"></i> Zip Archive
+              </button>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body">
+          <div class="tab-content">
+
+            <!-- Individual files -->
+            <div class="tab-pane fade show active" id="tab-files">
+              <p class="text-muted small mb-3">
+                Upload one or more Django app files. <strong>models.py is required.</strong>
+                admin.py and apps.py are optional but improve import quality.
+              </p>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  <span class="badge bg-danger me-1">required</span> models.py
+                </label>
+                <input type="file" name="source_files" class="form-control"
+                       accept=".py" id="models-file" />
+                <div class="form-text">Main model class definitions</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  <span class="badge bg-secondary me-1">optional</span> admin.py
+                </label>
+                <input type="file" name="source_files" class="form-control"
+                       accept=".py" id="admin-file" />
+                <div class="form-text">Enriches sections, list_display, search_fields, inlines</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  <span class="badge bg-secondary me-1">optional</span> apps.py
+                </label>
+                <input type="file" name="source_files" class="form-control"
+                       accept=".py" id="apps-file" />
+                <div class="form-text">Provides app_label and verbose_name</div>
+              </div>
+            </div>
+
+            <!-- Zip -->
+            <div class="tab-pane fade" id="tab-zip">
+              <p class="text-muted small mb-3">
+                Upload a zip archive containing your Django app folder.
+                ModelDev will find <code>models.py</code>, <code>admin.py</code>
+                and <code>apps.py</code> inside automatically.
+              </p>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  <span class="badge bg-danger me-1">required</span> App Archive (.zip)
+                </label>
+                <input type="file" name="zip_file" class="form-control"
+                       accept=".zip" id="zip-file" />
+              </div>
+              <div class="alert alert-info py-2 small">
+                <i class="bi bi-info-circle"></i>
+                The zip can contain the files at the root or inside a subdirectory —
+                ModelDev will search for the right files automatically.
+              </div>
+            </div>
+
+          </div><!-- /.tab-content -->
+        </div><!-- /.card-body -->
+        <div class="card-footer d-flex justify-content-end gap-2">
+          <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-success px-4" id="submit-btn">
+            <i class="bi bi-search"></i> Parse Files
+          </button>
+        </div>
+      </div><!-- /.card -->
+
+    </form>
+  </div>
+
+  <!-- Info sidebar -->
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-info-circle text-info"></i> What gets imported
+      </div>
+      <div class="card-body small">
+        <table class="table table-sm table-dark mb-0">
+          <thead><tr><th>Source</th><th>Imported as</th></tr></thead>
+          <tbody>
+            <tr><td><code>class MyModel(models.Model)</code></td><td>Clazz</td></tr>
+            <tr><td>Field definitions</td><td>Fields (all 35+ types)</td></tr>
+            <tr><td><code>class Meta</code></td><td>Clazz meta properties</td></tr>
+            <tr><td><code>list_display</code></td><td>Clazz list display</td></tr>
+            <tr><td><code>search_fields</code></td><td>Clazz search fields</td></tr>
+            <tr><td><code>list_filter</code></td><td>Clazz list filter</td></tr>
+            <tr><td><code>fieldsets</code></td><td>Sections + SectionFields</td></tr>
+            <tr><td>Inline classes</td><td>Related Tables</td></tr>
+            <tr><td><code>AppConfig</code></td><td>app_label, verbose_name</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-exclamation-triangle text-warning"></i> Limitations
+      </div>
+      <div class="card-body small text-muted">
+        <ul class="mb-0 ps-3">
+          <li>Dynamic choices (variable references) are noted but not resolved</li>
+          <li>Custom manager / queryset methods are not imported</li>
+          <li>Signal handlers and mixins are skipped</li>
+          <li>FK targets not in the same file will show as unresolved</li>
+          <li>You can edit any imported data after import</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /row -->
+<!-- Progress feedback (hidden until submit) -->
+<div id="progress-card" class="mt-4" style="display:none">
+  <div class="card border-info">
+    <div class="card-body d-flex align-items-center gap-3 py-3">
+      <div class="spinner-border text-info" role="status"></div>
+      <div>
+        <div class="fw-semibold">Parsing files…</div>
+        <div class="text-muted small">
+          Reading model definitions, field types, admin configuration.
+          Large files with many models may take a few seconds.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('upload-form').addEventListener('submit', function (e) {
+  // Validate at least one file is chosen
+  const modelsFile = document.getElementById('models-file');
+  const zipFile    = document.getElementById('zip-file');
+  const activeTab  = document.querySelector('#uploadTabs .nav-link.active').dataset.bsTarget;
+
+  if (activeTab === '#tab-files' && !modelsFile.value) {
+    e.preventDefault();
+    alert('Please select a models.py file.');
+    return;
+  }
+  if (activeTab === '#tab-zip' && !zipFile.value) {
+    e.preventDefault();
+    alert('Please select a zip archive.');
+    return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Parsing…';
+
+  // Show progress card
+  document.getElementById('progress-card').style.display = '';
+});
+</script>
+{% endblock %}

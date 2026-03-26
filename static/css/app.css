@@ -1,0 +1,195 @@
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+:root {
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --surface: #0f172a;
+  --surface-2: #1e293b;
+  --surface-3: #334155;
+  --border: #334155;
+  --text-muted: #94a3b8;
+}
+
+body {
+  background-color: var(--surface);
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Navbar ───────────────────────────────────────────────────────────────── */
+.navbar {
+  background-color: #0a0e1a !important;
+  border-color: var(--border) !important;
+}
+
+.navbar-brand {
+  letter-spacing: -0.5px;
+  font-size: 1.2rem;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.card {
+  background-color: var(--surface-2);
+  border-color: var(--border);
+  border-radius: 0.625rem;
+  transition: box-shadow 0.15s ease;
+}
+
+.card-header {
+  background-color: rgba(255,255,255,0.03);
+  border-color: var(--border);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+}
+
+.card-footer {
+  background-color: rgba(255,255,255,0.02) !important;
+  border-color: var(--border) !important;
+}
+
+/* ── Clazz cards hover ────────────────────────────────────────────────────── */
+.clazz-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.clazz-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  border-color: var(--accent) !important;
+}
+
+/* ── Section card ─────────────────────────────────────────────────────────── */
+.section-card {
+  transition: border-color 0.15s ease;
+}
+.section-card:hover {
+  border-color: #f59e0b !important;
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+.table-dark {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: rgba(255,255,255,0.04);
+  font-size: 0.875rem;
+}
+
+.table-dark thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom-color: var(--border);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+/* ── Badges ───────────────────────────────────────────────────────────────── */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ── Forms ────────────────────────────────────────────────────────────────── */
+.form-control,
+.form-select {
+  background-color: var(--surface-3);
+  border-color: var(--border);
+  color: #e2e8f0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--surface-3);
+  border-color: var(--accent);
+  color: #e2e8f0;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.form-check-input {
+  background-color: var(--surface-3);
+  border-color: var(--border);
+}
+
+.form-check-input:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.form-text {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-bottom: 0.35rem;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn-primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* ── List groups (section field list) ────────────────────────────────────── */
+.list-group-item {
+  background-color: var(--surface-2);
+  border-color: var(--border);
+  color: #e2e8f0;
+  transition: background-color 0.1s ease;
+}
+
+.list-group-item:hover {
+  background-color: rgba(79,70,229,0.08) !important;
+}
+
+.list-group-item.sortable-chosen {
+  background-color: rgba(79,70,229,0.2) !important;
+  border-color: var(--accent) !important;
+}
+
+.drag-handle {
+  cursor: grab;
+  font-size: 1.1rem;
+}
+
+/* ── Code / monospace ─────────────────────────────────────────────────────── */
+.font-monospace {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+  font-size: 0.88em;
+}
+
+pre {
+  tab-size: 4;
+}
+
+/* ── Alerts ───────────────────────────────────────────────────────────────── */
+.alert-success { --bs-alert-bg: rgba(22,163,74,0.15); --bs-alert-border-color: #16a34a; }
+.alert-danger  { --bs-alert-bg: rgba(220,38,38,0.15); --bs-alert-border-color: #dc2626; }
+.alert-warning { --bs-alert-bg: rgba(245,158,11,0.12); --bs-alert-border-color: #f59e0b; }
+.alert-info    { --bs-alert-bg: rgba(14,165,233,0.12); --bs-alert-border-color: #0ea5e9; }
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ── Transitions / utils ──────────────────────────────────────────────────── */
+.collapse-transition { transition: all 0.2s ease; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .container-fluid { padding-left: 1rem; padding-right: 1rem; }
+  .card-header { flex-wrap: wrap; }
+}

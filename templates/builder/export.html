@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Export – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold"><i class="bi bi-download text-info"></i> Export Models</h1>
+    <p class="text-muted mb-0">Generate Django source files and download as a zip archive</p>
+  </div>
+</div>
+
+<form method="post" action="{% url 'export_download' %}" id="export-form">
+  {% csrf_token %}
+
+  <div class="row g-4">
+
+    <!-- Left: Clazz selection -->
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-boxes text-primary"></i> Select Clazzes to Export</span>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="toggleAll(true)">
+              <i class="bi bi-check-all"></i> All
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="toggleAll(false)">
+              <i class="bi bi-x"></i> None
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          {% if clazzes %}
+          <table class="table table-sm table-dark table-hover mb-0">
+            <thead class="text-muted">
+              <tr>
+                <th class="ps-3" style="width:36px"></th>
+                <th>Name</th>
+                <th>Fields</th>
+                <th>Sections</th>
+                <th>Inlines</th>
+                <th>Abstract</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for clazz in clazzes %}
+              <tr class="clazz-row" onclick="toggleRow(this)" style="cursor:pointer">
+                <td class="ps-3">
+                  <input class="form-check-input clazz-check" type="checkbox"
+                         name="selected_clazzes" value="{{ clazz.pk }}"
+                         id="chk_{{ clazz.pk }}" checked
+                         onclick="event.stopPropagation()" />
+                </td>
+                <td>
+                  <label class="form-check-label fw-semibold font-monospace" for="chk_{{ clazz.pk }}">
+                    {{ clazz.name }}
+                  </label>
+                  {% if clazz.verbose_name %}
+                    <div class="text-muted small">{{ clazz.verbose_name }}</div>
+                  {% endif %}
+                </td>
+                <td class="text-muted">{{ clazz.fields.count }}</td>
+                <td class="text-muted">{{ clazz.sections.count }}</td>
+                <td class="text-muted">
+                  {% with clazz.sections.all as secs %}
+                    {% for s in secs %}{{ s.related_tables.count }}{% if not forloop.last %}+{% endif %}{% endfor %}
+                  {% endwith %}
+                </td>
+                <td>
+                  {% if clazz.abstract %}
+                    <span class="badge bg-warning text-dark">abstract</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox"></i> No clazzes found. <a href="{% url 'clazz_create' %}">Create one first.</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Options -->
+    <div class="col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-sliders text-warning"></i> Export Options
+        </div>
+        <div class="card-body row g-3">
+          <div class="col-12">
+            <label class="form-label">App Name <span class="text-danger">*</span></label>
+            <input type="text" name="app_name" value="myapp"
+                   class="form-control font-monospace"
+                   placeholder="e.g. properties" required />
+            <div class="form-text">
+              Used as the Python package name and directory name in the zip.
+            </div>
+          </div>
+
+          <div class="col-12">
+            <p class="form-label mb-2">Always included</p>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <span class="badge bg-primary">models.py</span>
+              <span class="badge bg-primary">admin.py</span>
+              <span class="badge bg-primary">apps.py</span>
+              <span class="badge bg-primary">__init__.py</span>
+              <span class="badge bg-primary">README.md</span>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <p class="form-label mb-2">Optional files</p>
+            <div class="form-check form-switch mb-2">
+              <input class="form-check-input" type="checkbox" name="include_views"
+                     id="include_views" />
+              <label class="form-check-label" for="include_views">
+                views.py + urls.py
+                <div class="text-muted small">Basic CRUD view skeletons</div>
+              </label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" name="include_forms"
+                     id="include_forms" />
+              <label class="form-check-label" for="include_forms">
+                forms.py
+                <div class="text-muted small">ModelForm classes for each model</div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- What's generated -->
+      <div class="card mb-3">
+        <div class="card-header fw-semibold small">
+          <i class="bi bi-file-code text-success"></i> What's generated
+        </div>
+        <div class="card-body small">
+          <dl class="row mb-0">
+            <dt class="col-5 font-monospace">models.py</dt>
+            <dd class="col-7 text-muted">All model class definitions with fields and Meta</dd>
+            <dt class="col-5 font-monospace">admin.py</dt>
+            <dd class="col-7 text-muted">ModelAdmin + inline classes, @register decorators</dd>
+            <dt class="col-5 font-monospace">apps.py</dt>
+            <dd class="col-7 text-muted">AppConfig with name and verbose_name</dd>
+            <dt class="col-5 font-monospace">__init__.py</dt>
+            <dd class="col-7 text-muted">Empty package init file</dd>
+            <dt class="col-5 font-monospace">README.md</dt>
+            <dd class="col-7 text-muted">Installation instructions</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-info btn-lg" id="download-btn">
+          <i class="bi bi-download"></i> Download Zip
+        </button>
+      </div>
+
+      <p class="text-muted small text-center mt-2">
+        The zip is ready to drop into any Django project.
+      </p>
+    </div>
+
+  </div><!-- /row -->
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAll(checked) {
+  document.querySelectorAll('.clazz-check').forEach(cb => cb.checked = checked);
+}
+
+function toggleRow(tr) {
+  const cb = tr.querySelector('.clazz-check');
+  if (cb) cb.checked = !cb.checked;
+}
+
+document.getElementById('export-form').addEventListener('submit', function (e) {
+  const selected = document.querySelectorAll('.clazz-check:checked').length;
+  if (selected === 0) {
+    e.preventDefault();
+    alert('Please select at least one Clazz to export.');
+    return;
+  }
+  const btn = document.getElementById('download-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Building zip…';
+  // Re-enable after a delay (browser download won't reload the page)
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-download"></i> Download Zip';
+  }, 3000);
+});
+</script>
+{% endblock %}

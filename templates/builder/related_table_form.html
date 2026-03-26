@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Edit Related Table – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  <a href="{% url 'section_detail' section.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold">Edit Related Table</h1>
+    <p class="text-muted mb-0 small">
+      Section: <span class="text-warning">{{ section.name }}</span> ›
+      Clazz: <span class="text-primary font-monospace">{{ section.clazz.name }}</span>
+    </p>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-table text-danger"></i> Inline: {{ rt.related_clazz.name }}
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label">Child Clazz</label>
+              <select name="related_clazz" class="form-select" required>
+                {% for c in form.related_clazz.field.queryset %}
+                  <option value="{{ c.pk }}" {% if form.related_clazz.value == c.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ c.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">FK Field Name</label>
+              <input type="text" name="fk_field" value="{{ form.fk_field.value|default:'' }}"
+                     class="form-control font-monospace" required />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Verbose Name</label>
+              <input type="text" name="verbose_name" value="{{ form.verbose_name.value|default:'' }}"
+                     class="form-control" />
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label">Inline Style</label>
+              <select name="inline_style" class="form-select">
+                <option value="tabular"  {% if form.inline_style.value == 'tabular' %}selected{% endif %}>Tabular</option>
+                <option value="stacked"  {% if form.inline_style.value == 'stacked' %}selected{% endif %}>Stacked</option>
+              </select>
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label">Extra Rows</label>
+              <input type="number" name="extra" value="{{ form.extra.value|default:1 }}"
+                     class="form-control" min="0" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Max Rows</label>
+              <input type="number" name="max_num" value="{{ form.max_num.value|default:'' }}"
+                     class="form-control" placeholder="blank = unlimited" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Order</label>
+              <input type="number" name="order" value="{{ form.order.value|default:0 }}"
+                     class="form-control" min="0" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Fields to Display</label>
+              <input type="text" name="fields_display" value="{{ form.fields_display.value|default:'' }}"
+                     class="form-control font-monospace" placeholder="field1, field2 (blank = all)" />
+            </div>
+            <div class="col-12 d-flex gap-2 justify-content-end mt-2">
+              <a href="{% url 'section_detail' section.pk %}" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save"></i> Save
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}{{ section.name }} – ModelDev{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'clazz_detail' clazz.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <p class="text-muted mb-0 small">
+        <a href="{% url 'clazz_detail' clazz.pk %}" class="text-decoration-none text-primary font-monospace">{{ clazz.name }}</a>
+        <i class="bi bi-chevron-right mx-1"></i>
+        <i class="bi bi-folder2 text-warning"></i>
+      </p>
+      <h1 class="h3 mb-0 fw-bold">{{ section.name }}</h1>
+      {% if section.description %}<p class="text-muted mb-0 small">{{ section.description }}</p>{% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'section_edit' section.pk %}" class="btn btn-sm btn-outline-warning">
+      <i class="bi bi-pencil"></i> Edit Section
+    </a>
+    <a href="{% url 'section_delete' section.pk %}" class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-trash"></i>
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- ── Left: Fields in this section ─────────────────────────── -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ol text-info"></i> Fields in Section</span>
+        <small class="text-muted">Drag to reorder</small>
+      </div>
+      <div class="card-body p-0">
+        {% if section.section_fields.all %}
+        <ul class="list-group list-group-flush" id="sortable-fields">
+          {% for sf in section.section_fields.all %}
+          <li class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2"
+              data-id="{{ sf.pk }}" style="cursor:grab">
+            <i class="bi bi-grip-vertical text-muted drag-handle"></i>
+            <span class="badge bg-secondary me-1">{{ sf.order }}</span>
+            <span class="font-monospace flex-grow-1">{{ sf.field.name }}</span>
+            <span class="badge bg-primary">{{ sf.field.field_type }}</span>
+            {% if sf.field.null %}<span class="badge bg-secondary">null</span>{% endif %}
+            {% if sf.field.blank %}<span class="badge bg-secondary">blank</span>{% endif %}
+            <a href="{% url 'field_edit' sf.field.pk %}" class="btn btn-sm btn-outline-warning py-0 px-1">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'section_field_remove' sf.pk %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1"
+                      onclick="return confirm('Remove from section?')">
+                <i class="bi bi-x"></i>
+              </button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+          <div class="text-center text-muted py-4 small">
+            <i class="bi bi-inbox"></i> No fields yet. Add one from the panel on the right.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right: Add field + Related Tables ─────────────────────── -->
+  <div class="col-lg-6">
+
+    <!-- Add Field -->
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-plus-circle text-success"></i> Add Field to Section
+      </div>
+      <div class="card-body">
+        {% if available_fields %}
+        <form method="post" action="{% url 'section_field_add' section.pk %}" class="row g-2">
+          {% csrf_token %}
+          <div class="col-sm-6">
+            <label class="form-label small text-muted">Field</label>
+            <select name="field" class="form-select form-select-sm">
+              {% for f in available_fields %}
+                <option value="{{ f.pk }}">{{ f.name }} ({{ f.field_type }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-3">
+            <label class="form-label small text-muted">Order</label>
+            <input type="number" name="order" value="{{ section.section_fields.count }}"
+                   class="form-control form-control-sm" min="0" />
+          </div>
+          <div class="col-sm-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-success btn-sm w-100">
+              <i class="bi bi-plus"></i> Add
+            </button>
+          </div>
+        </form>
+        {% else %}
+          <p class="text-muted small mb-2">All clazz fields are already assigned to this section.</p>
+        {% endif %}
+        <hr class="border-secondary my-2">
+        <a href="{% url 'field_create' clazz.pk %}" class="btn btn-outline-info btn-sm">
+          <i class="bi bi-plus"></i> Create new field on {{ clazz.name }}
+        </a>
+      </div>
+    </div>
+
+    <!-- Related Tables (Inlines) -->
+    <div class="card">
+      <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-table text-danger"></i> Related Editable Tables
+          <span class="badge bg-secondary ms-1">{{ section.related_tables.count }}</span>
+        </span>
+        <button class="btn btn-sm btn-outline-danger py-0" type="button"
+                data-bs-toggle="collapse" data-bs-target="#rt-add-form">
+          <i class="bi bi-plus"></i> Add
+        </button>
+      </div>
+
+      <!-- Add Related Table form (collapsed by default) -->
+      <div class="collapse" id="rt-add-form">
+        <div class="card-body border-bottom border-secondary bg-dark">
+          <form method="post" action="{% url 'related_table_add' section.pk %}">
+            {% csrf_token %}
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <label class="form-label small text-muted">Child Clazz <span class="text-danger">*</span></label>
+                <select name="related_clazz" class="form-select form-select-sm" required>
+                  <option value="">— Select child model —</option>
+                  {% for c in rt_form.related_clazz.field.queryset %}
+                    <option value="{{ c.pk }}">{{ c.name }}</option>
+                  {% endfor %}
+                </select>
+                <div class="form-text small">The model with a FK pointing back to <code>{{ clazz.name }}</code></div>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small text-muted">FK Field Name <span class="text-danger">*</span></label>
+                <input type="text" name="fk_field" class="form-control form-control-sm font-monospace"
+                       placeholder="e.g. property" required />
+                <div class="form-text small">FK field on child that points to <code>{{ clazz.name }}</code></div>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small text-muted">Verbose Name</label>
+                <input type="text" name="verbose_name" class="form-control form-control-sm"
+                       placeholder="Optional heading override" />
+              </div>
+              <div class="col-sm-3">
+                <label class="form-label small text-muted">Style</label>
+                <select name="inline_style" class="form-select form-select-sm">
+                  <option value="tabular">Tabular</option>
+                  <option value="stacked">Stacked</option>
+                </select>
+              </div>
+              <div class="col-sm-3">
+                <label class="form-label small text-muted">Extra Rows</label>
+                <input type="number" name="extra" value="1" min="0"
+                       class="form-control form-control-sm" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small text-muted">Max Rows</label>
+                <input type="number" name="max_num" class="form-control form-control-sm"
+                       placeholder="Leave blank = unlimited" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small text-muted">Order</label>
+                <input type="number" name="order" value="{{ section.related_tables.count }}"
+                       class="form-control form-control-sm" min="0" />
+              </div>
+              <div class="col-12">
+                <label class="form-label small text-muted">Fields to Display</label>
+                <input type="text" name="fields_display" class="form-control form-control-sm font-monospace"
+                       placeholder="field1, field2 (blank = all)" />
+              </div>
+              <div class="col-12 d-flex justify-content-end gap-2 mt-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                        data-bs-toggle="collapse" data-bs-target="#rt-add-form">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <i class="bi bi-plus"></i> Add Inline Table
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Existing related tables -->
+      <div class="card-body p-0">
+        {% if section.related_tables.all %}
+          <table class="table table-sm table-dark table-hover mb-0">
+            <thead class="text-muted">
+              <tr>
+                <th class="ps-3">Child Model</th>
+                <th>FK Field</th>
+                <th>Style</th>
+                <th>Extra</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for rt in section.related_tables.all %}
+              <tr>
+                <td class="ps-3 font-monospace fw-semibold text-info">{{ rt.related_clazz.name }}</td>
+                <td class="font-monospace text-muted">{{ rt.fk_field }}</td>
+                <td>
+                  <span class="badge {% if rt.inline_style == 'tabular' %}bg-primary{% else %}bg-secondary{% endif %}">
+                    {{ rt.inline_style }}
+                  </span>
+                </td>
+                <td class="text-muted">{{ rt.extra }}{% if rt.max_num %}/{{ rt.max_num }}{% endif %}</td>
+                <td class="text-end pe-2">
+                  <a href="{% url 'related_table_edit' rt.pk %}" class="btn btn-sm btn-outline-warning py-0 px-1">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <form method="post" action="{% url 'related_table_delete' rt.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1"
+                            onclick="return confirm('Remove this inline table?')">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="text-center text-muted py-4 small">
+            <i class="bi bi-table"></i> No inline tables yet.<br>
+            Add one to allow editing related records (e.g. Images) directly in this section.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /col -->
+</div><!-- /row -->
+
+<!-- Hidden reorder form -->
+<form id="reorder-form" method="post" action="{% url 'section_field_reorder' section.pk %}">
+  {% csrf_token %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const sectionPk = {{ section.pk }};
+const reorderUrl = "{% url 'section_field_reorder' section.pk %}";
+const csrfToken  = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+const sortable = document.getElementById('sortable-fields');
+if (sortable) {
+  new Sortable(sortable, {
+    handle: '.drag-handle',
+    animation: 150,
+    onEnd: function () {
+      const items = sortable.querySelectorAll('li[data-id]');
+      const data  = Array.from(items).map((el, idx) => ({
+        id:    parseInt(el.dataset.id),
+        order: idx
+      }));
+      fetch(reorderUrl, {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken':  csrfToken,
+        },
+        body: JSON.stringify(data),
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.status === 'ok') {
+          // Update displayed order badges
+          items.forEach((el, idx) => {
+            const badge = el.querySelector('.badge');
+            if (badge) badge.textContent = idx;
+          });
+        }
+      });
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: modeldev
+    ports:
+      - "8080:8000"
+    volumes:
+      - modeldev_db:/app/db
+      - modeldev_static:/app/staticfiles
+    environment:
+      - SECRET_KEY=change-me-in-production-use-a-long-random-string
+      - DEBUG=True
+      - ALLOWED_HOSTS=*
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_PASSWORD=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@modeldev.local
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/login/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  modeldev_db:
+  modeldev_static:

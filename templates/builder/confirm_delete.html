@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Confirm Delete – ModelDev{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card border-danger">
+      <div class="card-header bg-danger text-white fw-bold">
+        <i class="bi bi-exclamation-triangle"></i> Confirm Delete
+      </div>
+      <div class="card-body text-center py-4">
+        <p class="fs-5 mb-1">Are you sure you want to delete</p>
+        <p class="fs-4 fw-bold text-danger mb-3">{{ object }}</p>
+        <p class="text-muted small">This action cannot be undone.</p>
+        <div class="d-flex gap-3 justify-content-center mt-4">
+          <a href="{{ cancel_url }}" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-x-circle"></i> Cancel
+          </a>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger px-4">
+              <i class="bi bi-trash"></i> Yes, Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

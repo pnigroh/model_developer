@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4 gap-3">
+  {% if clazz %}
+    <a href="{% url 'clazz_detail' clazz.pk %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+  {% else %}
+    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+  {% endif %}
+  <div>
+    <h1 class="h3 mb-0 fw-bold">{{ title }}</h1>
+  </div>
+</div>
+
+<form method="post" class="row g-4">
+  {% csrf_token %}
+
+  <!-- Left Column: Identity -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header fw-semibold"><i class="bi bi-info-circle text-primary"></i> Identity</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label">Class Name <span class="text-danger">*</span>
+            <small class="text-muted">(PascalCase)</small>
+          </label>
+          <input type="text" name="name" value="{{ form.name.value|default:'' }}"
+                 class="form-control font-monospace {% if form.name.errors %}is-invalid{% endif %}"
+                 placeholder="e.g. PropertyImage" required />
+          {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Verbose Name</label>
+          <input type="text" name="verbose_name" value="{{ form.verbose_name.value|default:'' }}"
+                 class="form-control" placeholder="e.g. Property Image" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Verbose Name Plural</label>
+          <input type="text" name="verbose_name_plural" value="{{ form.verbose_name_plural.value|default:'' }}"
+                 class="form-control" placeholder="e.g. Property Images" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">App Label</label>
+          <input type="text" name="app_label" value="{{ form.app_label.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="myapp" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">DB Table</label>
+          <input type="text" name="db_table" value="{{ form.db_table.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="myapp_mymodel" />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Ordering</label>
+          <input type="text" name="ordering" value="{{ form.ordering.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="-created_at, name" />
+          <div class="form-text">Comma-separated. Prefix with <code>-</code> for descending.</div>
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="abstract" id="id_abstract"
+                   {% if form.abstract.value %}checked{% endif %} />
+            <label class="form-check-label" for="id_abstract">Abstract model</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Description / Notes</label>
+          <textarea name="description" rows="3" class="form-control"
+                    placeholder="Internal notes about this model…">{{ form.description.value|default:'' }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: List / Search config -->
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header fw-semibold"><i class="bi bi-table text-info"></i> List View & Search</div>
+      <div class="card-body row g-3">
+        <div class="col-12">
+          <label class="form-label">List Display Columns</label>
+          <input type="text" name="list_display" value="{{ form.list_display.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="name, created_at, status" />
+          <div class="form-text">Comma-separated field names to show in the list view.</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Search Fields</label>
+          <input type="text" name="search_fields" value="{{ form.search_fields.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="name, email" />
+          <div class="form-text">Comma-separated fields to enable full-text search on.</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">List Filter Sidebar</label>
+          <input type="text" name="list_filter" value="{{ form.list_filter.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="status, is_active, created_at" />
+          <div class="form-text">Comma-separated fields for sidebar filter panel.</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Date Hierarchy</label>
+          <input type="text" name="date_hierarchy" value="{{ form.date_hierarchy.value|default:'' }}"
+                 class="form-control font-monospace" placeholder="created_at" />
+          <div class="form-text">Single date/datetime field for drill-down navigation.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2 justify-content-end">
+      {% if clazz %}
+        <a href="{% url 'clazz_detail' clazz.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+      {% endif %}
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-save"></i> Save Clazz
+      </button>
+    </div>
+  </div>
+
+</form>
+{% endblock %}

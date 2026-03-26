@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Reset Workspace – ModelDev{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-md-7 col-lg-6">
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h1 class="h3 mb-0 fw-bold"><i class="bi bi-arrow-counterclockwise text-warning"></i> Reset Workspace</h1>
+        <p class="text-muted mb-0 small">Clear all clazzes, fields and sections and optionally reload the starter examples</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- What will be deleted -->
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-trash3 text-danger"></i> Will be deleted
+        </div>
+        <div class="card-body">
+          <div class="row g-2 text-center">
+            <div class="col-3">
+              <div class="rounded p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                <div class="fs-2 fw-bold text-danger">{{ clazz_count }}</div>
+                <div class="small text-muted">Clazz{{ clazz_count|pluralize:"es" }}</div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="rounded p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                <div class="fs-2 fw-bold text-danger">{{ field_count }}</div>
+                <div class="small text-muted">Field{{ field_count|pluralize }}</div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="rounded p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                <div class="fs-2 fw-bold text-danger">{{ section_count }}</div>
+                <div class="small text-muted">Section{{ section_count|pluralize }}</div>
+              </div>
+            </div>
+            <div class="col-3">
+              <div class="rounded p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                <div class="fs-2 fw-bold text-danger">{{ inline_count }}</div>
+                <div class="small text-muted">Inline{{ inline_count|pluralize }}</div>
+              </div>
+            </div>
+          </div>
+          {% if clazz_count == 0 %}
+          <div class="alert alert-info py-2 small mt-3 mb-0">
+            <i class="bi bi-info-circle"></i> The workspace is already empty.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Seed option -->
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">
+          <i class="bi bi-stars text-warning"></i> After reset
+        </div>
+        <div class="card-body">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="seed_examples"
+                   id="seed_examples" checked />
+            <label class="form-check-label fw-semibold" for="seed_examples">
+              Load starter examples
+            </label>
+          </div>
+          <p class="text-muted small mt-2 mb-0 ms-4 ps-2">
+            Creates two ready-to-use example clazzes:
+          </p>
+          <div class="ms-4 ps-2 mt-2 d-flex flex-column gap-2">
+
+            <div class="rounded border border-secondary p-2 small">
+              <span class="font-monospace fw-bold text-primary">Property</span>
+              <span class="text-muted ms-2">— Real-estate listing</span>
+              <div class="d-flex flex-wrap gap-1 mt-1">
+                <span class="badge bg-dark border border-secondary font-monospace">title</span>
+                <span class="badge bg-dark border border-secondary font-monospace">description</span>
+                <span class="badge bg-dark border border-secondary font-monospace">city</span>
+                <span class="badge bg-dark border border-secondary font-monospace">address</span>
+                <span class="badge bg-dark border border-secondary font-monospace">price</span>
+                <span class="badge bg-dark border border-secondary font-monospace">bedrooms</span>
+                <span class="badge bg-dark border border-secondary font-monospace">bathrooms</span>
+                <span class="badge bg-dark border border-secondary font-monospace">status</span>
+                <span class="badge bg-dark border border-secondary font-monospace">area_sqm</span>
+                <span class="badge bg-dark border border-secondary font-monospace">created_at</span>
+                <span class="badge bg-dark border border-secondary font-monospace">updated_at</span>
+              </div>
+              <div class="mt-1 text-muted">
+                3 sections · list_display · search_fields · list_filter
+              </div>
+            </div>
+
+            <div class="rounded border border-secondary p-2 small">
+              <span class="font-monospace fw-bold text-primary">PropertyImage</span>
+              <span class="text-muted ms-2">— Images linked to a Property</span>
+              <div class="d-flex flex-wrap gap-1 mt-1">
+                <span class="badge bg-dark border border-secondary font-monospace">property <span class="text-danger">FK</span></span>
+                <span class="badge bg-dark border border-secondary font-monospace">image</span>
+                <span class="badge bg-dark border border-secondary font-monospace">caption</span>
+                <span class="badge bg-dark border border-secondary font-monospace">order</span>
+              </div>
+              <div class="mt-1 text-muted">
+                1 section · tabular inline on Property › Property Details
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-3 justify-content-end">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4">
+          <i class="bi bi-x-circle"></i> Cancel
+        </a>
+        <button type="submit" class="btn btn-danger px-4"
+                {% if clazz_count == 0 and not True %}disabled{% endif %}>
+          <i class="bi bi-arrow-counterclockwise"></i> Reset Workspace
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

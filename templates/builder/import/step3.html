@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Import – Complete – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold"><i class="bi bi-check-circle text-success"></i> Import Complete</h1>
+    <p class="text-muted mb-0">Here's a summary of what was imported</p>
+  </div>
+</div>
+
+{% include "builder/import/_steps.html" with current=3 %}
+
+<div class="row g-4 mt-2">
+  <div class="col-lg-7">
+
+    <!-- Summary card -->
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-bar-chart text-info"></i> Summary
+      </div>
+      <div class="card-body">
+        <div class="row text-center g-3">
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-success bg-opacity-10 border border-success">
+              <div class="fs-2 fw-bold text-success">{{ summary.created|length }}</div>
+              <div class="small text-muted">Created</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-warning bg-opacity-10 border border-warning">
+              <div class="fs-2 fw-bold text-warning">{{ summary.updated|length }}</div>
+              <div class="small text-muted">Updated</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-secondary bg-opacity-10 border border-secondary">
+              <div class="fs-2 fw-bold text-secondary">{{ summary.skipped|length }}</div>
+              <div class="small text-muted">Skipped</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-danger bg-opacity-10 border border-danger">
+              <div class="fs-2 fw-bold text-danger">{{ summary.errors|length }}</div>
+              <div class="small text-muted">Errors</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-secondary my-3">
+
+        <div class="d-flex flex-wrap gap-4 small text-muted">
+          <div><i class="bi bi-list-ul text-info"></i> {{ summary.fields_created }} field{{ summary.fields_created|pluralize }} created</div>
+          <div><i class="bi bi-layout-split text-warning"></i> {{ summary.sections_created }} section{{ summary.sections_created|pluralize }} created</div>
+          <div><i class="bi bi-table text-danger"></i> {{ summary.related_created }} inline{{ summary.related_created|pluralize }} created</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Created -->
+    {% if summary.created %}
+    <div class="card mb-3 border-success">
+      <div class="card-header text-success fw-semibold">
+        <i class="bi bi-plus-circle"></i> Created ({{ summary.created|length }})
+      </div>
+      <div class="card-body py-2">
+        {% for name in summary.created %}
+          <a href="{% url 'dashboard' %}" class="badge bg-success text-decoration-none font-monospace me-1 mb-1 fs-6">
+            {{ name }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Updated -->
+    {% if summary.updated %}
+    <div class="card mb-3 border-warning">
+      <div class="card-header text-warning fw-semibold">
+        <i class="bi bi-arrow-repeat"></i> Updated ({{ summary.updated|length }})
+      </div>
+      <div class="card-body py-2">
+        {% for name in summary.updated %}
+          <span class="badge bg-warning text-dark font-monospace me-1 mb-1 fs-6">{{ name }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Skipped -->
+    {% if summary.skipped %}
+    <div class="card mb-3">
+      <div class="card-header text-muted fw-semibold">
+        <i class="bi bi-skip-forward"></i> Skipped – already existed ({{ summary.skipped|length }})
+      </div>
+      <div class="card-body py-2">
+        {% for name in summary.skipped %}
+          <span class="badge bg-secondary font-monospace me-1 mb-1">{{ name }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Errors -->
+    {% if summary.errors %}
+    <div class="card mb-3 border-danger">
+      <div class="card-header text-danger fw-semibold">
+        <i class="bi bi-x-circle"></i> Errors ({{ summary.errors|length }})
+      </div>
+      <div class="card-body">
+        {% for err in summary.errors %}
+          <div class="alert alert-danger py-1 mb-1 small">{{ err }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Quick actions -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-lightning text-warning"></i> Next Steps
+      </div>
+      <div class="card-body">
+        <p class="text-muted small">Your models have been imported. Here's what you can do next:</p>
+        <div class="list-group list-group-flush">
+          <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+            <i class="bi bi-grid-1x2 text-primary fs-5"></i>
+            <div>
+              <div class="fw-semibold">View Dashboard</div>
+              <div class="small text-muted">See all your imported clazzes</div>
+            </div>
+          </a>
+          <a href="{% url 'import_step1' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+            <i class="bi bi-upload text-success fs-5"></i>
+            <div>
+              <div class="fw-semibold">Import More</div>
+              <div class="small text-muted">Import another set of model files</div>
+            </div>
+          </a>
+          <a href="{% url 'export_page' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+            <i class="bi bi-download text-info fs-5"></i>
+            <div>
+              <div class="fw-semibold">Export</div>
+              <div class="small text-muted">Generate and download Django source files</div>
+            </div>
+          </a>
+        </div>
+
+        {% if summary.related_created %}
+        <div class="alert alert-warning mt-3 small">
+          <i class="bi bi-exclamation-triangle"></i>
+          <strong>Check FK field names</strong> on imported inline tables —
+          if the parser couldn't determine them automatically they'll need to be set manually.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

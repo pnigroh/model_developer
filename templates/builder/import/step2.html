@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block title %}Import – Step 2 – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'import_step1' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold"><i class="bi bi-eye text-info"></i> Preview Parsed Models</h1>
+    <p class="text-muted mb-0">Review what was found, select which clazzes to import</p>
+  </div>
+</div>
+
+{% include "builder/import/_steps.html" with current=2 %}
+
+<!-- Global warnings/errors -->
+{% if session_data.warnings %}
+<div class="alert alert-warning mt-3 small">
+  <strong><i class="bi bi-exclamation-triangle"></i> Parser Warnings</strong>
+  <ul class="mb-0 mt-1">
+    {% for w in session_data.warnings %}<li>{{ w }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if session_data.errors %}
+<div class="alert alert-danger mt-3 small">
+  <strong><i class="bi bi-x-circle"></i> Parser Errors</strong>
+  <ul class="mb-0 mt-1">
+    {% for e in session_data.errors %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if session_data.app_label %}
+<div class="alert alert-info py-2 mt-3 small">
+  <i class="bi bi-box"></i>
+  App detected from <code>apps.py</code>:
+  <strong>{{ session_data.app_label }}</strong>
+  {% if session_data.app_verbose_name %}— "{{ session_data.app_verbose_name }}"{% endif %}
+</div>
+{% endif %}
+
+<form method="post" action="{% url 'import_execute' %}">
+  {% csrf_token %}
+
+  <!-- Conflict strategy -->
+  <div class="card mb-4 mt-3">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-sliders text-warning"></i> Conflict Strategy
+      <span class="text-muted small ms-2">({{ conflict_count }} clazz{{ conflict_count|pluralize }} already exist)</span>
+    </div>
+    <div class="card-body d-flex gap-4">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="conflict_strategy"
+               id="strat_skip" value="skip" checked />
+        <label class="form-check-label" for="strat_skip">
+          <strong>Skip</strong>
+          <div class="text-muted small">Leave existing clazzes untouched</div>
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="conflict_strategy"
+               id="strat_overwrite" value="overwrite" />
+        <label class="form-check-label" for="strat_overwrite">
+          <strong>Overwrite</strong>
+          <div class="text-muted small">Replace existing clazzes and all their fields/sections</div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Select all / none -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(true)">
+        <i class="bi bi-check-all"></i> Select All
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll(false)">
+        <i class="bi bi-x"></i> Deselect All
+      </button>
+    </div>
+    <span class="text-muted small">{{ total }} model{{ total|pluralize }} found</span>
+  </div>
+
+  <!-- Clazz cards -->
+  {% for cd in clazzes_data %}
+  <div class="card mb-3 {% if cd.exists %}border-warning{% endif %}">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <div class="form-check mb-0">
+          <input class="form-check-input clazz-check" type="checkbox"
+                 name="selected_clazzes" value="{{ cd.name }}"
+                 id="chk_{{ cd.name }}" checked />
+          <label class="form-check-label fw-bold font-monospace fs-6" for="chk_{{ cd.name }}">
+            {{ cd.name }}
+          </label>
+        </div>
+        {% if cd.verbose_name %}
+          <span class="text-muted small">"{{ cd.verbose_name }}"</span>
+        {% endif %}
+        {% if cd.abstract %}
+          <span class="badge bg-warning text-dark">abstract</span>
+        {% endif %}
+        {% if cd.exists %}
+          <span class="badge bg-warning text-dark">
+            <i class="bi bi-exclamation-triangle"></i> already exists
+          </span>
+        {% else %}
+          <span class="badge bg-success">new</span>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-2 text-muted small">
+        <span><i class="bi bi-list-ul text-info"></i> {{ cd.field_count }} field{{ cd.field_count|pluralize }}</span>
+        <span><i class="bi bi-layout-split text-warning"></i> {{ cd.section_count }} section{{ cd.section_count|pluralize }}</span>
+        {% if cd.inline_count %}
+          <span><i class="bi bi-table text-danger"></i> {{ cd.inline_count }} inline{{ cd.inline_count|pluralize }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- Fields preview -->
+      {% if cd.fields_preview %}
+      <div class="mb-3">
+        <p class="small text-muted fw-semibold mb-1">
+          <i class="bi bi-list-ul text-info"></i> Fields
+        </p>
+        <div class="d-flex flex-wrap gap-1">
+          {% for f in cd.fields_preview %}
+          <span class="badge bg-dark border border-secondary font-monospace">
+            {{ f.name }}
+            <span class="text-primary ms-1">{{ f.field_type }}</span>
+            {% if f.null %}<span class="text-muted">N</span>{% endif %}
+            {% if f.blank %}<span class="text-muted">B</span>{% endif %}
+            {% if f.related %}<span class="text-danger ms-1">→{{ f.related }}</span>{% endif %}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Sections preview -->
+      {% if cd.sections_preview %}
+      <div class="mb-2">
+        <p class="small text-muted fw-semibold mb-1">
+          <i class="bi bi-layout-split text-warning"></i> Sections
+        </p>
+        {% for s in cd.sections_preview %}
+        <div class="d-flex align-items-center gap-2 mb-1 small">
+          <i class="bi bi-folder2 text-warning"></i>
+          <span class="fw-semibold">{{ s.name }}</span>
+          {% if s.collapsed %}<span class="badge bg-secondary">collapsed</span>{% endif %}
+          <span class="text-muted">→</span>
+          {% for fname in s.fields %}
+            <span class="badge bg-dark border border-secondary font-monospace">{{ fname }}</span>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Inlines preview -->
+      {% if cd.inlines_preview %}
+      <div>
+        <p class="small text-muted fw-semibold mb-1">
+          <i class="bi bi-table text-danger"></i> Inline Tables
+        </p>
+        {% for rt in cd.inlines_preview %}
+        <div class="d-flex align-items-center gap-2 mb-1 small">
+          <i class="bi bi-table text-danger"></i>
+          <span class="font-monospace fw-semibold text-info">{{ rt.related_model }}</span>
+          <span class="badge {% if rt.inline_style == 'tabular' %}bg-primary{% else %}bg-secondary{% endif %}">
+            {{ rt.inline_style }}
+          </span>
+          {% if rt.fk_field and rt.fk_field != '?' %}
+            <span class="text-muted">FK: <code>{{ rt.fk_field }}</code></span>
+          {% else %}
+            <span class="badge bg-warning text-dark">FK field unknown – set manually after import</span>
+          {% endif %}
+          {% if rt.section_name %}
+            <span class="text-muted">in "{{ rt.section_name }}"</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Per-clazz warnings -->
+      {% if cd.warnings %}
+      <div class="alert alert-warning py-1 mt-2 small mb-0">
+        {% for w in cd.warnings %}<div><i class="bi bi-exclamation-triangle"></i> {{ w }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Admin meta -->
+      {% if cd.list_display or cd.search_fields or cd.list_filter %}
+      <div class="mt-2 d-flex flex-wrap gap-3 small text-muted">
+        {% if cd.list_display %}
+          <span><i class="bi bi-table"></i> list_display: <code>{{ cd.list_display }}</code></span>
+        {% endif %}
+        {% if cd.search_fields %}
+          <span><i class="bi bi-search"></i> search: <code>{{ cd.search_fields }}</code></span>
+        {% endif %}
+        {% if cd.list_filter %}
+          <span><i class="bi bi-funnel"></i> filter: <code>{{ cd.list_filter }}</code></span>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% empty %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-inbox display-4"></i>
+    <p class="mt-2">No models were found in the uploaded files.</p>
+    <a href="{% url 'import_step1' %}" class="btn btn-outline-secondary">← Try again</a>
+  </div>
+  {% endfor %}
+
+  {% if clazzes_data %}
+  <div class="d-flex gap-2 justify-content-end mt-3 pb-4">
+    <a href="{% url 'import_step1' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <button type="submit" class="btn btn-success px-4" id="import-btn">
+      <i class="bi bi-cloud-download"></i> Import Selected
+    </button>
+  </div>
+  {% endif %}
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAll(checked) {
+  document.querySelectorAll('.clazz-check').forEach(cb => cb.checked = checked);
+}
+
+document.getElementById('import-btn')?.addEventListener('click', function () {
+  const selected = document.querySelectorAll('.clazz-check:checked').length;
+  if (selected === 0) {
+    alert('Please select at least one model to import.');
+    return false;
+  }
+  this.disabled = true;
+  this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importing…';
+});
+</script>
+{% endblock %}
