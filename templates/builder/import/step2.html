@@ -238,14 +238,19 @@ function toggleAll(checked) {
   document.querySelectorAll('.clazz-check').forEach(cb => cb.checked = checked);
 }
 
-document.getElementById('import-btn')?.addEventListener('click', function () {
+document.querySelector('form[action]').addEventListener('submit', function (e) {
   const selected = document.querySelectorAll('.clazz-check:checked').length;
   if (selected === 0) {
+    e.preventDefault();
     alert('Please select at least one model to import.');
-    return false;
+    return;
   }
-  this.disabled = true;
-  this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importing…';
+  // Let the form POST go — then update the button for feedback only
+  const btn = document.getElementById('import-btn');
+  if (btn) {
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Importing…';
+    // Do NOT disable — a disabled button stops some browsers from submitting
+  }
 });
 </script>
 {% endblock %}
