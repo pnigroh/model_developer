@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Deploy App – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'scripts_index' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold">
+      <span class="badge bg-warning text-dark me-2">Step 2</span>
+      <i class="bi bi-box-arrow-in-right text-info"></i> Deploy App to Django Project
+    </h1>
+    <p class="text-muted mb-0 small font-monospace">deploy_app.py</p>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="deploy-form">
+  {% csrf_token %}
+
+  <div class="row g-4">
+
+    <!-- Left column: required params -->
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-folder text-warning"></i> Input — App Source</div>
+        <div class="card-body">
+
+          <!-- Toggle path vs upload -->
+          <div class="mb-3">
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="input_type" id="input_path_radio"
+                     value="path" {% if post.input_type != 'upload' %}checked{% endif %} />
+              <label class="btn btn-outline-secondary" for="input_path_radio">
+                <i class="bi bi-folder2"></i> Local path
+              </label>
+              <input type="radio" class="btn-check" name="input_type" id="input_upload_radio"
+                     value="upload" {% if post.input_type == 'upload' %}checked{% endif %} />
+              <label class="btn btn-outline-secondary" for="input_upload_radio">
+                <i class="bi bi-file-zip"></i> Upload zip
+              </label>
+            </div>
+          </div>
+
+          <div id="path-panel">
+            <label class="form-label fw-semibold">
+              <code class="text-info">-i</code> App Folder or Zip Path
+            </label>
+            <input type="text" name="input_path"
+                   value="{{ post.input_path|default:'' }}"
+                   class="form-control font-monospace"
+                   placeholder="/path/to/django_models  or  /path/to/app.zip" />
+            <div class="form-text">Absolute path to the generated app folder or a <code>.zip</code> archive.</div>
+          </div>
+
+          <div id="upload-panel" style="display:none">
+            <label class="form-label fw-semibold">
+              <code class="text-info">-i</code> Upload Zip Archive
+            </label>
+            <input type="file" name="input_upload" class="form-control" accept=".zip" />
+            <div class="form-text">Upload a <code>.zip</code> containing the generated app folder.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-hdd text-primary"></i> Target — Django Project</div>
+        <div class="card-body">
+          <label class="form-label fw-semibold">
+            <code class="text-info">-t</code> Project Root Path
+            <span class="text-danger">*</span>
+          </label>
+          <input type="text" name="target_dir"
+                 value="{{ post.target_dir|default:'' }}"
+                 class="form-control font-monospace"
+                 placeholder="/path/to/my-django-project"
+                 required />
+          <div class="form-text">
+            The root directory of the target Django project — the folder containing <code>manage.py</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header fw-semibold"><i class="bi bi-tag text-secondary"></i> App Name Override</div>
+        <div class="card-body">
+          <label class="form-label fw-semibold">
+            <code class="text-info">-a</code> App Name
+            <span class="text-muted small">(optional)</span>
+          </label>
+          <input type="text" name="app_name"
+                 value="{{ post.app_name|default:'' }}"
+                 class="form-control font-monospace"
+                 placeholder="Defaults to the input folder/zip name" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: options -->
+    <div class="col-lg-6">
+      <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-sliders text-info"></i> Sync Mode</div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">
+            Used when the app <em>already exists</em> in the target project.
+          </p>
+
+          {% for value, title, desc in modes %}
+          <div class="form-check p-3 rounded border mb-2 mode-option
+                      {% if post.mode == value or not post.mode and value == 'update' %}border-primary bg-primary bg-opacity-10{% else %}border-secondary{% endif %}"
+               onclick="selectMode('{{ value }}', this)" style="cursor:pointer">
+            <input class="form-check-input" type="radio" name="mode" id="mode_{{ value }}"
+                   value="{{ value }}"
+                   {% if post.mode == value or not post.mode and value == 'update' %}checked{% endif %} />
+            <label class="form-check-label w-100" for="mode_{{ value }}" style="cursor:pointer">
+              <span class="fw-semibold font-monospace text-info">{{ value }}</span>
+              {% if value == 'update' %}<span class="badge bg-secondary ms-1">default</span>{% endif %}
+              <div class="text-muted small mt-1">{{ desc }}</div>
+            </label>
+          </div>
+          {% endfor %}
+
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-toggles text-warning"></i> Additional Options</div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" name="dry_run" id="dry_run"
+                   {% if post.dry_run == 'on' %}checked{% endif %} />
+            <label class="form-check-label" for="dry_run">
+              <code class="text-warning">--dry-run</code>
+              <div class="text-muted small">Print every action without writing any files</div>
+            </label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="no_migrate" id="no_migrate"
+                   {% if post.no_migrate == 'on' %}checked{% endif %} />
+            <label class="form-check-label" for="no_migrate">
+              <code class="text-warning">--no-migrate</code>
+              <div class="text-muted small">Skip <code>makemigrations</code> and <code>migrate</code></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 justify-content-end">
+        <a href="{% url 'scripts_index' %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-info px-4" id="submit-btn">
+          <i class="bi bi-play-fill"></i> Run Deploy Script
+        </button>
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle path vs upload panel
+document.querySelectorAll('input[name="input_type"]').forEach(function (radio) {
+  radio.addEventListener('change', function () {
+    document.getElementById('path-panel').style.display   = this.value === 'path'   ? '' : 'none';
+    document.getElementById('upload-panel').style.display = this.value === 'upload' ? '' : 'none';
+  });
+});
+// Set initial state
+(function () {
+  const checked = document.querySelector('input[name="input_type"]:checked');
+  if (checked && checked.value === 'upload') {
+    document.getElementById('path-panel').style.display   = 'none';
+    document.getElementById('upload-panel').style.display = '';
+  }
+})();
+
+// Mode card highlight
+function selectMode(value, card) {
+  document.querySelectorAll('.mode-option').forEach(function (el) {
+    el.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+    el.classList.add('border-secondary');
+  });
+  card.classList.remove('border-secondary');
+  card.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+  card.querySelector('input[type="radio"]').checked = true;
+}
+
+document.getElementById('deploy-form').addEventListener('submit', function () {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Running…';
+});
+</script>
+{% endblock %}

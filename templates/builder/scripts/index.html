@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Scripts – ModelDev{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <div>
+    <h1 class="h3 mb-0 fw-bold"><i class="bi bi-terminal text-warning"></i> Class Migrator Scripts</h1>
+    <p class="text-muted mb-0">Two-step pipeline: generate Django models from a CSV export, then deploy into a project</p>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Step 1 -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <span class="badge bg-primary me-2">Step 1</span>
+        <i class="bi bi-filetype-csv text-success"></i> Generate Models from CSV
+      </div>
+      <div class="card-body">
+        <p class="text-muted">
+          Upload a semicolon-delimited CSV export of your class/field definitions.
+          The script converts every class into a Django model and outputs a complete
+          app folder (<code>models.py</code>, <code>admin.py</code>, <code>apps.py</code>, <code>__init__.py</code>).
+        </p>
+        <h6 class="fw-semibold mt-3 mb-2">Parameters</h6>
+        <table class="table table-sm table-dark small">
+          <tbody>
+            <tr><td class="text-info font-monospace">-i / --input</td><td>CSV file <span class="badge bg-danger">required</span></td></tr>
+            <tr><td class="text-info font-monospace">-o / --output</td><td>Output directory path <span class="badge bg-danger">required</span></td></tr>
+            <tr><td class="text-info font-monospace">-a / --app-name</td><td>Django app name <span class="badge bg-secondary">optional</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <a href="{% url 'scripts_generate' %}" class="btn btn-success w-100">
+          <i class="bi bi-play-fill"></i> Run Generate Script
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <span class="badge bg-warning text-dark me-2">Step 2</span>
+        <i class="bi bi-box-arrow-in-right text-info"></i> Deploy App to Django Project
+      </div>
+      <div class="card-body">
+        <p class="text-muted">
+          Takes the generated app folder (or a zip) and wires it into an existing
+          Django/Django-CMS project: patches <code>settings.py</code> and <code>urls.py</code>,
+          generates views and templates, and runs migrations.
+        </p>
+        <h6 class="fw-semibold mt-3 mb-2">Parameters</h6>
+        <table class="table table-sm table-dark small">
+          <tbody>
+            <tr><td class="text-info font-monospace">-i / --input</td><td>App folder or zip <span class="badge bg-danger">required</span></td></tr>
+            <tr><td class="text-info font-monospace">-t / --target</td><td>Project root path <span class="badge bg-danger">required</span></td></tr>
+            <tr><td class="text-info font-monospace">-a / --app-name</td><td>Override app name <span class="badge bg-secondary">optional</span></td></tr>
+            <tr><td class="text-info font-monospace">-m / --mode</td><td>update / replace / new-only <span class="badge bg-secondary">optional</span></td></tr>
+            <tr><td class="text-info font-monospace">--dry-run</td><td>Preview only, no writes <span class="badge bg-secondary">optional</span></td></tr>
+            <tr><td class="text-info font-monospace">--no-migrate</td><td>Skip migrations <span class="badge bg-secondary">optional</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer">
+        <a href="{% url 'scripts_deploy' %}" class="btn btn-info w-100">
+          <i class="bi bi-play-fill"></i> Run Deploy Script
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Pipeline diagram -->
+<div class="card mt-4">
+  <div class="card-header fw-semibold small text-muted">Full pipeline</div>
+  <div class="card-body py-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap small">
+      <div class="rounded px-3 py-2 bg-success bg-opacity-15 border border-success text-center" style="min-width:120px">
+        <div class="fw-bold text-success">CSV export</div>
+        <div class="text-muted">legacy system</div>
+      </div>
+      <i class="bi bi-arrow-right fs-5 text-muted"></i>
+      <div class="rounded px-3 py-2 bg-primary bg-opacity-15 border border-primary text-center" style="min-width:160px">
+        <div class="fw-bold text-primary">Step 1 — Generate</div>
+        <div class="text-muted">models.py · admin.py · apps.py</div>
+      </div>
+      <i class="bi bi-arrow-right fs-5 text-muted"></i>
+      <div class="rounded px-3 py-2 bg-warning bg-opacity-15 border border-warning text-center" style="min-width:160px">
+        <div class="fw-bold text-warning">Step 2 — Deploy</div>
+        <div class="text-muted">patch settings · urls · migrate</div>
+      </div>
+      <i class="bi bi-arrow-right fs-5 text-muted"></i>
+      <div class="rounded px-3 py-2 bg-success bg-opacity-15 border border-success text-center" style="min-width:120px">
+        <div class="fw-bold text-success">Django project</div>
+        <div class="text-muted">ready to use</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3 small text-muted">
+  Scripts live at: <code>{{ scripts_dir }}</code>
+</div>
+{% endblock %}

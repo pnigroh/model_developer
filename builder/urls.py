@@ -1,10 +1,18 @@
 from django.urls import path
 from . import views
 from . import import_export_views as ie
+from . import scripts_views as sv
 
 urlpatterns = [
     # Dashboard
     path('',                                        views.dashboard,             name='dashboard'),
+
+    # Scripts (Class Migrator GUI)
+    path('scripts/',                                sv.scripts_index,            name='scripts_index'),
+    path('scripts/generate/',                       sv.generate_form,            name='scripts_generate'),
+    path('scripts/deploy/',                         sv.deploy_form,              name='scripts_deploy'),
+    path('scripts/run/<str:job_id>/',               sv.scripts_run,              name='scripts_run'),
+    path('scripts/stream/<str:job_id>/',            sv.scripts_stream,           name='scripts_stream'),
 
     # Import wizard
     path('import/',                                 ie.import_step1,             name='import_step1'),
