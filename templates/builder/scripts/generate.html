@@ -41,12 +41,15 @@
               <span class="text-danger">*</span>
             </label>
             <input type="text" name="output_dir"
-                   value="{{ post.output_dir|default:'/tmp/modeldev_output' }}"
+                   value="{{ post.output_dir|default:default_output }}"
                    class="form-control font-monospace"
-                   placeholder="/path/to/output/myapp"
+                   placeholder="{{ default_output }}"
                    required />
             <div class="form-text">
-              Directory where the Django app files will be written. Created if it doesn't exist.
+              Path <strong>inside the container</strong>.
+              <code>{{ default_output }}</code> is bind-mounted to <code>./output/</code>
+              in the project folder on your host — files written there appear immediately on disk.
+              You can also use any other container-accessible path.
             </div>
           </div>
 

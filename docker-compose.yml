@@ -9,6 +9,7 @@ services:
     volumes:
       - modeldev_db:/app/db
       - modeldev_static:/app/staticfiles
+      - ${MODELDEV_OUTPUT_DIR:-./output}:/app/output
     environment:
       - SECRET_KEY=change-me-in-production-use-a-long-random-string
       - DEBUG=True

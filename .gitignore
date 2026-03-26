@@ -42,3 +42,9 @@ Thumbs.db
 
 # ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
+
+# Script output (generated files)
+output/
+
+# Script output (generated files)
+output/
