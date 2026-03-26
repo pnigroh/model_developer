@@ -73,8 +73,14 @@ def generate_form(request):
     GET  → show the generate form
     POST → validate, save upload, build argv, redirect to run page
     """
+    TYPES = [
+        'Text', 'Memo', 'Blob', 'Image', 'Boolean', 'Money',
+        'Decimal number', 'Whole number', 'Email address',
+        'Date', 'Date & Time', 'Color', 'Autonumber',
+    ]
+
     if request.method == 'GET':
-        return render(request, 'builder/scripts/generate.html')
+        return render(request, 'builder/scripts/generate.html', {'types': TYPES})
 
     # ── POST ──────────────────────────────────────────────────────────────────
     csv_file   = request.FILES.get('csv_file')
@@ -92,6 +98,7 @@ def generate_form(request):
             messages.error(request, e)
         return render(request, 'builder/scripts/generate.html', {
             'post': request.POST,
+            'types': TYPES,
         })
 
     csv_path = _save_upload(csv_file)

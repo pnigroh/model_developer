@@ -91,7 +91,7 @@ Property;Status;Text;
 PropertyImage;property;Property;FK to Property</pre>
         <p class="text-muted mb-1 fw-semibold">Supported data types:</p>
         <div class="d-flex flex-wrap gap-1">
-          {% for t in "Text,Memo,Blob,Image,Boolean,Money,Decimal number,Whole number,Email address,Date,Date & Time,Color,Autonumber"|split:"," %}
+          {% for t in types %}
             <span class="badge bg-dark border border-secondary font-monospace">{{ t }}</span>
           {% endfor %}
         </div>
