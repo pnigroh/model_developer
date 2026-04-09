@@ -1,11 +1,10 @@
-version: "3.9"
-
 services:
   web:
     build: .
-    container_name: modeldev
+    container_name: modeldev-web
+    restart: "no"
     ports:
-      - "8080:8000"
+      - "${MODELDEV_WEB_PORT:-8400}:8000"
     volumes:
       - modeldev_db:/app/db
       - modeldev_static:/app/staticfiles
@@ -17,7 +16,6 @@ services:
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_PASSWORD=admin
       - DJANGO_SUPERUSER_EMAIL=admin@modeldev.local
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/login/')"]
       interval: 30s
